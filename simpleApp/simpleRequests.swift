@@ -1,0 +1,73 @@
+//
+//  simpleRequests.swift
+//  simpleApp
+//
+//  Created by Gelareh Taban on 12/20/16.
+//  Copyright © 2016 gadphly. All rights reserved.
+//
+
+import Foundation
+
+class simpleRequests {
+    
+    typealias NetworkingCompletion = (String) -> Void
+    
+    static func get(_ parameters: [String: String]? = nil, completion: @escaping NetworkingCompletion) {
+
+        requestWithMethod(requestType: "GET", queryParameters: parameters, completionHandler: completion)
+    }
+    
+    
+    /// Used to contain the common code for GET and POST and DELETE and PUT.
+    static fileprivate func requestWithMethod(requestType method:String,
+                                       queryParameters: [String: String]? = nil,
+                                       bodyParameters: NSDictionary? = nil,
+                                       completionHandler: @escaping NetworkingCompletion) {
+        
+        let myUrl = Foundation.URL(string: Constants.baseURL)!
+        let request = URLRequest.requestWithURL(myUrl,
+                                                method: method,
+                                                queryParameters: queryParameters,
+                                                bodyParameters: bodyParameters,
+                                                headers: nil)
+        
+        
+        let task = URLSession.sharedSimpleSession.dataTask(with: request, completionHandler: {
+            data, response, sessionError in
+            
+            // check for non-200 response, as URLSession doesn't raise that as an error
+            var error = sessionError            
+            
+            if let httpResponse = response as? HTTPURLResponse {
+                
+                print("ReponseCode = \(httpResponse.statusCode)")
+
+                //TODO: deal with non-200
+            }
+            if let data = data {
+                print("data = \(data)")
+                let dataNSString = NSString(data: data, encoding: String.Encoding.utf8.rawValue)
+                if let dataString = dataNSString {
+                    completionHandler(dataString as! String)
+                }
+                else {
+                    completionHandler(String("NIL"))
+                }
+            } else {
+                completionHandler(String("NIL"))
+            }
+            
+        })
+        task.resume()
+    }
+
+    
+    // MARK: - Constants
+    
+    struct Constants {
+        /// This is the base URL for your requests.
+        //        static let baseURL = URL(string: "https://api.github.com/")!
+        static let baseURL = String("https://localhost:8090")!
+    }
+    
+}

@@ -12,11 +12,32 @@ class simpleRequests {
     
     typealias NetworkingCompletion = (String) -> Void
     
-    static func get(_ parameters: [String: String]? = nil, completion: @escaping NetworkingCompletion) {
+    static func get(_ qParameters: [String: String]? = nil, completion: @escaping NetworkingCompletion) {
 
-        requestWithMethod(requestType: "GET", queryParameters: parameters, completionHandler: completion)
+        requestWithMethod(requestType: "GET",
+                          queryParameters: qParameters,
+                          completionHandler: completion)
     }
     
+    static func put(_ bParameters: NSDictionary? = nil, completion: @escaping NetworkingCompletion) {
+        requestWithMethod(requestType: "PUT",
+                          bodyParameters: bParameters,
+                          completionHandler: completion)
+    }
+
+    static func post(_ bParameters: NSDictionary? = nil, completion: @escaping NetworkingCompletion) {
+        requestWithMethod(requestType: "POST",
+                          bodyParameters: bParameters,
+                          completionHandler: completion)
+    }
+
+    static func delete(_ bParameters: NSDictionary? = nil, completion: @escaping NetworkingCompletion) {
+        requestWithMethod(requestType: "DELETE",
+                          bodyParameters: bParameters,
+                          completionHandler: completion)
+    }
+    
+
     
     /// Used to contain the common code for GET and POST and DELETE and PUT.
     static fileprivate func requestWithMethod(requestType method:String,
@@ -36,13 +57,18 @@ class simpleRequests {
             data, response, sessionError in
             
             // check for non-200 response, as URLSession doesn't raise that as an error
-            var error = sessionError            
-            
             if let httpResponse = response as? HTTPURLResponse {
                 
                 print("ReponseCode = \(httpResponse.statusCode)")
 
-                //TODO: deal with non-200
+                var error = sessionError
+
+                if let httpResponse = response as? HTTPURLResponse {
+                    if httpResponse.statusCode < 200 || httpResponse.statusCode >= 300 {
+                        let description = "HTTP response was \(httpResponse.statusCode)"
+                        error = NSError(domain: "Networking", code: 2016, userInfo: [NSLocalizedDescriptionKey: description])
+                    }
+                }
             }
             if let data = data {
                 print("data = \(data)")
